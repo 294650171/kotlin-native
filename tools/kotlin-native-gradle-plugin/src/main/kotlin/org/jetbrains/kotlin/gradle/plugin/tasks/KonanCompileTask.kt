@@ -99,8 +99,8 @@ abstract class KonanCompileTask: KonanBuildingTask(), KonanCompileSpec {
 
         addArgs("-repo", libraries.repos.map { it.canonicalPath })
 
-        if (configuration.files.isNotEmpty()) {
-            configuration.files.filter { it.name.endsWith(".klib") }.forEach {
+        if (platformConfiguration.files.isNotEmpty()) {
+            platformConfiguration.files.filter { it.name.endsWith(".klib") }.forEach {
                 addFileArgs("-library", project.files(it.absolutePath))
             }
 

@@ -67,6 +67,7 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
 
     @Internal lateinit var destinationDir: File
     @Internal lateinit var artifactName: String
+    @Internal lateinit var platformConfiguration: Configuration
     @Internal lateinit var configuration: Configuration
 
     protected val artifactFullName: String
@@ -85,8 +86,10 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
         super.init(target)
         this.destinationDir = destinationDir
         this.artifactName = artifactName
-        configuration = project.configurations.create("artifact${artifactName}_${target.name}")
-        configuration.attributes{
+        configuration = project.configurations.maybeCreate("artifact$artifactName")
+        platformConfiguration = project.configurations.create("artifact${artifactName}_${target.name}")
+        platformConfiguration.extendsFrom(configuration)
+        platformConfiguration.attributes{
             it.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.NATIVE_LINK))
             it.attribute(CppBinary.LINKAGE_ATTRIBUTE, Linkage.STATIC)
             it.attribute(CppBinary.OPTIMIZED_ATTRIBUTE, false)
@@ -96,7 +99,7 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
         project.pluginManager.withPlugin("maven-publish") {
 
             //configuration.files.add(artifact)
-            configuration.artifacts.add(object: PublishArtifact {
+            platformConfiguration.artifacts.add(object: PublishArtifact {
                 override fun getName() = artifact.name
                 override fun getExtension() = if (artifactSuffix.startsWith('.')) artifactSuffix.substring(1) else artifactSuffix
                 override fun getType() = artifactSuffix
@@ -109,7 +112,7 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
             val linkUsage = objectFactory.named(Usage::class.java, Usage.NATIVE_LINK)
             val runtimeUsage = objectFactory.named(Usage::class.java, Usage.NATIVE_RUNTIME)
             val konanSoftwareComponent = project.extensions.getByName(KonanPlugin.KONAN_MAIN_VARIANT) as KonanSoftwareComponent
-            konanSoftwareComponent.addVariant(NativeVariant(target.name, linkUsage, null, linkUsage, configuration))
+            konanSoftwareComponent.addVariant(NativeVariant(target.name, linkUsage, null, linkUsage, platformConfiguration))
         }
     }
 
