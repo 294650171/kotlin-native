@@ -24,7 +24,7 @@ konanArtifacts {
     program('Curl') {
         project.configurations.forEach{ println(it.name)}
         dependencies {
-            artifactCurl_macos_x64 'org.jetbrains.kotlin.native:libcurl:1.0'
+            artifactCurl 'org.jetbrains.kotlin.native:libcurl:1.0'
         }
     }
 }
