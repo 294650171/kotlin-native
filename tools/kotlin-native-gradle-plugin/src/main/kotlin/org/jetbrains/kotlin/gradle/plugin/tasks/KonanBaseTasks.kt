@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.*
 import org.gradle.language.cpp.CppBinary
 import org.gradle.language.cpp.internal.NativeVariant
+import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.nativeplatform.Linkage
 import org.gradle.util.ConfigureUtil
 import org.jetbrains.kotlin.gradle.plugin.*
@@ -92,7 +93,7 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
             it.attribute(CppBinary.LINKAGE_ATTRIBUTE, Linkage.STATIC)
             it.attribute(CppBinary.OPTIMIZED_ATTRIBUTE, false)
             it.attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false)
-            it.attribute(Attribute.of("platform", String::class.java), target.name)
+            it.attribute(Attribute.of("org.gradle.native.kotlin.platform", String::class.java), target.name)
         }
 
         project.pluginManager.withPlugin("maven-publish") {
@@ -109,7 +110,7 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
             val linkUsage = objectFactory.named(Usage::class.java, Usage.NATIVE_LINK)
             val runtimeUsage = objectFactory.named(Usage::class.java, Usage.NATIVE_RUNTIME)
             val konanSoftwareComponent = project.extensions.getByName(KonanPlugin.KONAN_MAIN_VARIANT) as KonanSoftwareComponent
-            konanSoftwareComponent.addVariant(NativeVariant(target.name, linkUsage, null, linkUsage, platformConfiguration))
+            konanSoftwareComponent.addVariant(NativeVariant(Names.of(target.name), linkUsage, null, linkUsage, platformConfiguration))
         }
     }
 

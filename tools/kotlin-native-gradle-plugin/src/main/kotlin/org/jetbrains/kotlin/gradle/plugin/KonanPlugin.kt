@@ -22,13 +22,16 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
 import org.gradle.language.cpp.internal.NativeVariant
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -346,8 +349,8 @@ class KonanPlugin @Inject constructor(private val registry: ToolingModelBuilderR
                 }
             }
         }
-        project.gradle.experimentalFeatures.enable()
-
+        //project.gradle.experimentalFeatures.enable()
+        project.gradle.services.get(FeaturePreviews::class.java).enableFeature(FeaturePreviews.Feature.GRADLE_METADATA)
         // Enable multiplatform support
         project.pluginManager.apply(KotlinNativePlatformPlugin::class.java)
         project.afterEvaluate {
@@ -357,18 +360,21 @@ class KonanPlugin @Inject constructor(private val registry: ToolingModelBuilderR
                     val buildingConfig = it
                     val artifactId = buildingConfig.name
                     project.extensions.configure(PublishingExtension::class.java) {
+                        val publishing = it
                         it.publications.create(artifactId, MavenPublication::class.java) {
                             it.artifactId = artifactId
                             it.groupId = project.group.toString()
                             it.from(konanSoftwareComponent)
+                            (it as MavenPublicationInternal).publishWithOriginalFileName()
                         }
-                    }
-                    for (v in konanSoftwareComponent.variants) {
-                        project.extensions.configure(PublishingExtension::class.java) {
-                            it.publications.create(v.name, MavenPublication::class.java) {
-                                it.artifactId = artifactId
-                                it.groupId = project.group.toString()
+                        for (v in konanSoftwareComponent.variants) {
+                            val coordinates = (v as PublicationInternal).coordinates
+                            publishing.publications.create(coordinates.name, MavenPublication::class.java) {
+                                it.artifactId = coordinates.name
+                                it.groupId = coordinates.group
+                                it.version = coordinates.version
                                 it.from(v)
+                                (it as MavenPublicationInternal).publishWithOriginalFileName()
                             }
                         }
                     }
