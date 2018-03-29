@@ -98,7 +98,7 @@ abstract class KonanArtifactTask: KonanTargetableTask(), KonanArtifactSpec {
 
         project.pluginManager.withPlugin("maven-publish") {
             platformConfiguration.artifacts.add(object: PublishArtifact {
-                override fun getName() = artifact.name
+                override fun getName() = "${artifact.name}/${target.name}"
                 override fun getExtension() = if (artifactSuffix.startsWith('.')) artifactSuffix.substring(1) else artifactSuffix
                 override fun getType() = artifactSuffix
                 override fun getClassifier():String? = target.name

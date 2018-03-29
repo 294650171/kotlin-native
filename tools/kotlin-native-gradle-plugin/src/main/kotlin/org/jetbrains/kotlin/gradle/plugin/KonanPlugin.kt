@@ -369,8 +369,9 @@ class KonanPlugin @Inject constructor(private val registry: ToolingModelBuilderR
                         }
                         for (v in konanSoftwareComponent.variants) {
                             // TODO: with gradle 4.7 don't forget to change to SoftwareComponentsWithCoordinates
-                            publishing.publications.create(v.name, MavenPublication::class.java) {
-                                it.artifactId = v.name
+                            val name = "${v.name}/$artifactId"
+                            publishing.publications.create(name, MavenPublication::class.java) {
+                                it.artifactId = "${artifactId}-${v.name}"
                                 it.groupId = project.group.toString()
                                 it.version = project.version.toString()
                                 it.from(v)
